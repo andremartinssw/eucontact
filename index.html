@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EU - Contact Your Representatives</title>
     <style>
 
@@ -17,7 +18,7 @@
 
         body {
             font-family: Arial, sans-serif;
-            padding: 30px;
+            padding: 2% 10%;
         }
 
         h1 {
@@ -73,8 +74,11 @@
         }
 
         #meps .profileImage {
+            display: block;
             border-radius: 10px;
-            width: 30%;
+            max-width: 30%;
+            height: auto;
+            max-height: 80%;
             margin-left: 10px;
         }
 
@@ -90,15 +94,23 @@
             text-align: left;
         }
 
-        @media screen and (max-width: 800px) {
+        @media screen and (max-width: 1000px) {
             .mep-item {
                 flex-basis: calc(50% - 5px);
             }
+            
+            body {
+                padding: 2% 5%;
+            }
         }
 
-        @media screen and (max-width: 500px) {
+        @media screen and (max-width: 600px) {
             .mep-item {
                 flex-basis: 100%;
+            }
+
+            body {
+                padding: 2%;
             }
         }
 
