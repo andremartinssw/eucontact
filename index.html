@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EU - Contact Your Representatives</title>
+    <style>
+
+        html {
+            display: table;
+            margin: auto;
+            text-align: center;
+        }
+
+        .logo {
+            width: 200px;
+            border-radius: 5px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-left: 20px;
+            margin-top: 0px;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        #countrySelector {
+            font-size: 1.4em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+            height: 40px;
+            background-color: #f8f8f8;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        #countrySelector:focus {
+            border-color: #9d9d9d;
+            box-shadow: 0 0 0 0.2rem rgba(146, 146, 146, 0.25);
+            outline: none;
+        }
+
+        #mepsSelector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        #meps h3 {
+            color: #666;
+            margin-bottom: 0px;
+        }
+
+        #meps label {
+            margin-left: 8px;
+            margin-right: 10px;
+            overflow: hidden;
+            max-width: 65%;
+        }
+
+        #meps .politicalGroup {
+            color: #999;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        #meps .profileImage {
+            border-radius: 10px;
+            width: 30%;
+            margin-left: 10px;
+        }
+
+        .mep-item {
+            flex-basis: calc(33% - 5px);
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+            border: 1px solid #9a9a9a;
+            height: 180px;
+            text-align: left;
+        }
+
+        @media screen and (max-width: 800px) {
+            .mep-item {
+                flex-basis: calc(50% - 5px);
+            }
+        }
+
+        @media screen and (max-width: 500px) {
+            .mep-item {
+                flex-basis: 100%;
+            }
+        }
+
+        .mep-item.selected {
+            background-color: #00309a1c;
+        }
+
+        .mep-item input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 0px;
+        }
+
+        #mepsSelector div {
+            margin-bottom: 10px;
+        }
+
+        #outputLink {
+            display: block;
+            margin-top: 20px;
+            color: blue;
+        }
+
+        figcaption {
+            font-size: 0.8em;
+            color: #3c3c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class='logo' src="./assets/images/Flag_of_Europe.svg"></img>
+        <h1>Contact your European Parliament Representatives</h1>
+    </div>
+
+    <h2>Step 1 - Select your country </h2>
+    <select 
+        id="countrySelector"
+        onchange="countrySelectorHandler(event)">
+        <option value="">Select a country</option>
+    </select>
+
+    <div id="meps">
+        <h2>Step 2 - Pick the Representatives you wish to contact</h2>
+        <form id="mepsSelector">
+            <!-- MEPs will be rendered here -->
+        </form>
+    </div>
+
+    <div id="output">
+        <h2>Step 3 - Compose Email</h2>
+        <a id="outputLink">
+            <figure>
+                <img width="100" height="100" src="https://img.icons8.com/pastel-glyph/100/003399/email-open--v1.png" alt="Open email application to compose an email to the selected Representatives."/>
+                <figcaption>Open email application to compose an email to the selected Representatives.</figcaption>
+            </figure>
+        </a>
+        </div>
+
+
+    <script type="module">
+
+        async function loadMeps() {
+            let response = await fetch('./data/meps.json');
+            let data = await response.json();
+
+            return data;
+        }
+
+        async function loadCountries() {
+            let response = await fetch('./data/countries.json');
+            let data = await response.json();
+
+            return data.sort((a, b) => a.text.localeCompare(b.text));
+        }
+
+        function updateCountrySelector(countries) {
+            let countrySelector = document.getElementById('countrySelector');
+
+            countries.forEach(country => {
+                let option = document.createElement('option');
+                option.value = country.value;
+                option.id = country.text;
+                option.innerText = country.flag + ' ' + country.text;
+                countrySelector.appendChild(option);
+            });
+        }
+
+        function renderMeps(meps, countryName) {
+            let mepsSelectorForm = document.getElementById('mepsSelector');
+            mepsSelectorForm.innerHTML = '';
+
+            meps
+                .filter(mep => mep.country === countryName)
+                .sort((a, b) => a.fullName.localeCompare(b.fullName))
+                .forEach(mep => {
+                    let label = document.createElement('label');
+                    label.htmlFor = mep.fullName;
+                    label.innerHTML = `
+                        <h3>${mep.fullName}</h2>
+                        <p class="politicalGroup">${mep.politicalGroup}</p>
+                    `;
+
+                    let profileImage = document.createElement('img');
+                    profileImage.src = `https://www.europarl.europa.eu/mepphoto/${mep.id}.jpg`
+                    profileImage.className = 'profileImage';
+
+                    let div = document.createElement('div');
+                    div.className = 'mep-item';
+                    div.id = mep.id;
+
+                    div.addEventListener('click', function(event) {
+                        if (!div.classList.contains('selected')) {
+                            div.classList.add('selected');
+                        } else {
+                            div.classList.remove('selected');
+                        }
+
+                        mepsSelectorHandler();
+                    });
+                    div.appendChild(profileImage);
+                    div.appendChild(label);
+
+                    mepsSelectorForm.appendChild(div);
+                });
+        };
+
+        window.countrySelectorHandler = function(event) {
+            let countryCode = event.target.value;
+            let countryName = event.target.options[event.target.selectedIndex].id;
+
+            let outputLinkElement = document.getElementById('outputLink');
+            outputLinkElement.href = '';
+            renderMeps(meps, countryName);
+        }
+
+        window.mepsSelectorHandler = function() {
+            let selectedMeps = document.querySelectorAll('.mep-item.selected');
+
+            let selectedMepsData = meps.filter(mep => {
+                return Array.from(selectedMeps).map(selectedMep => selectedMep.id).includes(mep.id);
+            });
+            
+            let outputLinkElement = document.getElementById('outputLink');
+            let outputLink = "mailto:?bcc=" + selectedMepsData.map(mep => '"' + mep.fullName + '" <' + mep.contactInformation.emails.join(', ') + '>').join(', ');
+            outputLinkElement.href = outputLink;
+        }
+
+        let countries = await loadCountries();
+        updateCountrySelector(countries);
+
+        let meps = await loadMeps();
+        
+    </script>
+</body>
+</html>
